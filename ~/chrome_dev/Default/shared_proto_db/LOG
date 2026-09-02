@@ -1,0 +1,6 @@
+2026/09/01-10:39:29.152 52e0 Reusing MANIFEST C:\tmp\chrome_dev\Default\shared_proto_db/MANIFEST-000001
+2026/09/01-10:39:29.153 52e0 Recovering log #3
+2026/09/01-10:39:29.157 52e0 Reusing old log C:\tmp\chrome_dev\Default\shared_proto_db/000003.log 
+2026/09/01-10:39:41.730 60a4 Level-0 table #5: started
+2026/09/01-10:39:41.736 60a4 Level-0 table #5: 135550 bytes OK
+2026/09/01-10:39:41.741 60a4 Delete type=0 #3
