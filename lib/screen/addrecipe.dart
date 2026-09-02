@@ -16,6 +16,10 @@ class _AddRecipeState extends State<AddRecipe> {
     int _charleft=0;
     final TextEditingController _recipePhotoController = TextEditingController();
     
+    String _category = 'Indonesian';
+    bool _isVegetarian = false;
+    String _level = 'Easy';
+
     @override
     void initState() {
         super.initState();
@@ -42,7 +46,7 @@ class _AddRecipeState extends State<AddRecipe> {
             appBar: AppBar(
                 title: const Text('Add Recipe'),
             ),
-            body:  Column(
+            body:  ListView(
                     children:  [
                     TextField(
                       controller:_recipeNameController,
@@ -73,6 +77,54 @@ class _AddRecipeState extends State<AddRecipe> {
                           },
             ),
         Image.network(_recipePhotoController.text),
+        
+            DropdownButton<String>(
+              value: _category,
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    _category = newValue;
+                  });
+                }
+              },
+              items: <String>['Indonesian', 'Japanese', 'Korean']
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Checkbox(
+                checkColor: Colors.white,
+                value: _isVegetarian,
+                activeColor: Colors.blue,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _isVegetarian = value!;
+                  });
+                },
+              ),
+              const Text("Vegetarian")
+            ]),
+            DropdownButton<String>(
+              value: _level,
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    _level = newValue;
+                  });
+                }
+              },
+              items: <String>['Easy', 'Medium', 'Difficult']
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
 
             ElevatedButton(
             style: ButtonStyle(
@@ -86,9 +138,9 @@ class _AddRecipeState extends State<AddRecipe> {
                     name: _recipeNameController.text,
                     desc: _recipeDescController.text,
                     photo: _recipePhotoController.text,
-                    category: '',
-                    type: '',
-                    level: ''
+                    category: _category,
+                    type: _isVegetarian ? 'Vegetarian' : 'Non Vege',
+                    level: _level
                   ));
                   //nanti diisi showdialog
                   	showDialog<String>(

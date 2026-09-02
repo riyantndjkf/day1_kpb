@@ -11,14 +11,14 @@ class Recipe {
 }
 
 var recipes = <Recipe>[
-     Recipe(
+    Recipe(
         id: 1,
         name: 'Rujak Cingur',
         photo: 'https://www.astronauts.id/blog/wp-content/uploads/2023/12/rujak-cingur-makanan-khas-daerah-jawa-timur.jpg',
         desc: 'Rujak Cingur, makanan khas Surabaya, menjadi unik dengan menggunakan cingur (mulut sapi) sebagai bahan utama.',
         category: 'Indonesian',
         type:'Non Vege',
-        level: 'Red'
+        level: 'Medium'
       ),
     
     Recipe(
@@ -27,8 +27,8 @@ var recipes = <Recipe>[
         photo: 'https://www.astronauts.id/blog/wp-content/uploads/2023/12/nasi-gudeg-makanan-khas-daerah-DI-Jogjakarta.jpg',
         desc: 'Nasi Gudeg, kuliner khas Jogja, merupakan olahan nangka muda yang dimasak dengan santan.',
         category: 'Indonesian',
-        type:'Non Vege',
-        level: 'Red'
+        type:'Vegetarian',
+        level: 'Difficult'
       ),
     
     Recipe(
@@ -38,6 +38,6 @@ var recipes = <Recipe>[
         desc: 'Palumara, sup ikan khas Sulawesi Tengah, adalah perpaduan citarasa pedas dan asam yang menggoda selera.',
         category: 'Indonesian',
         type:'Non Vege',
-        level: 'Red'
+        level: 'Easy'
       ),
    ];

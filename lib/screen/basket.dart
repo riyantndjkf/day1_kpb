@@ -42,7 +42,26 @@ child:
               Container (
                 margin: const EdgeInsets.all(20),
                 child: Text(recipes[i].desc),
-              )            
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(recipes[i].category),
+                    if (recipes[i].type == 'Vegetarian')
+                      const Text("Vegetarian", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: recipes[i].level == 'Easy' ? Colors.green : (recipes[i].level == 'Medium' ? Colors.yellow : Colors.red),
+                        borderRadius: BorderRadius.circular(12)
+                      ),
+                      child: Text(recipes[i].level, style: TextStyle(color: recipes[i].level == 'Medium' ? Colors.black : Colors.white, fontWeight: FontWeight.bold)),
+                    )
+                  ],
+                ),
+              )
             ]
           ) 
         )
