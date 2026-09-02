@@ -9,10 +9,7 @@ class ItemBasket extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Item Basket')),
-      body: Center(child: Text("Item $id count= $count")
-      ),
-      
+      body:  Center(child: Text("Item $id count = $count")),
     );
-    
   }
 }
