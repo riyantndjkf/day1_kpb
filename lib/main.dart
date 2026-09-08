@@ -7,6 +7,7 @@ import 'package:day1_kpb/screen/basket.dart';
 import 'package:day1_kpb/screen/about.dart';
 import 'package:day1_kpb/screen/addrecipe.dart';
 import 'package:day1_kpb/screen/itemBasket.dart';
+import 'package:day1_kpb/screen/game.dart';
 
 GoRouter getAppRouter() {
   return GoRouter(
@@ -30,7 +31,7 @@ GoRouter getAppRouter() {
       ),
       GoRoute(
         path: '/basket', // /basket
-        builder: (context, state) =>  Basket(),
+        builder: (context, state) => Basket(),
         routes: <RouteBase>[
           GoRoute(
             path: 'item/:id', // /basket/item/10?count=5
@@ -61,7 +62,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Flutter Demo',
-      theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)),
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+      ),
       routerConfig: getAppRouter(),
     );
   }
@@ -80,8 +83,8 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
   int _currentIndex = 0;
-  final List<Widget> _screens = [Home(), Search(), History()];
-  final List<String> _title = ['Home', 'Search', 'History'];
+  final List<Widget> _screens = [Home(), Search(), History(), Game()];
+  final List<String> _title = ['Home', 'Search', 'History', 'Game'];
 
   void _incrementCounter() {
     setState(() {
@@ -100,7 +103,7 @@ class _MyHomePageState extends State<MyHomePage> {
       drawer: myDrawer(),
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(_title[_currentIndex])
+        title: Text(_title[_currentIndex]),
       ),
       body: _screens[_currentIndex],
       floatingActionButton: FloatingActionButton(
@@ -170,7 +173,6 @@ class _MyHomePageState extends State<MyHomePage> {
               context.push("/addrecipe");
             },
           ),
-
         ],
       ),
     );
@@ -179,11 +181,13 @@ class _MyHomePageState extends State<MyHomePage> {
   BottomNavigationBar myBottomNavigationBar() {
     return BottomNavigationBar(
       currentIndex: _currentIndex,
+      type: BottomNavigationBarType.fixed,
       fixedColor: Colors.teal,
       items: const [
         BottomNavigationBarItem(label: "Home", icon: Icon(Icons.home)),
         BottomNavigationBarItem(label: "Search", icon: Icon(Icons.search)),
         BottomNavigationBarItem(label: "History", icon: Icon(Icons.history)),
+        BottomNavigationBarItem(label: "Game", icon: Icon(Icons.games)),
       ],
       onTap: (int index) {
         setState(() {
