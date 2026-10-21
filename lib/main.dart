@@ -8,10 +8,46 @@ import 'package:day1_kpb/screen/about.dart';
 import 'package:day1_kpb/screen/addrecipe.dart';
 import 'package:day1_kpb/screen/itemBasket.dart';
 import 'package:day1_kpb/screen/game.dart';
+import 'package:day1_kpb/screen/highscore.dart';
+import 'package:day1_kpb/screen/login.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:day1_kpb/screen/popularmovie.dart';
+import 'package:day1_kpb/screen/detailpop.dart';
+
+
+String active_user = '';
+final ValueNotifier<bool> isLoggedIn = ValueNotifier(false);
+
+Future<String> checkUser() async {
+  final prefs = await SharedPreferences.getInstance();
+  active_user = prefs.getString('user_id') ?? '';
+  isLoggedIn.value = active_user.isNotEmpty;
+  return active_user;
+}
+
+Future<void> saveHighScore(int point) async {
+  final prefs = await SharedPreferences.getInstance();
+  final topPoint = prefs.getInt('top_point');
+  if (topPoint == null || point > topPoint) {
+    await prefs.setInt('top_point', point);
+    await prefs.setString('top_user', active_user);
+  }
+}
 
 GoRouter getAppRouter() {
   return GoRouter(
     initialLocation: '/',
+    refreshListenable: isLoggedIn,
+    redirect: (context, state) {
+      final login = state.uri.path == '/login';
+      if (!isLoggedIn.value && !login) {
+        return '/login';
+      }
+      if (isLoggedIn.value && login) {
+        return '/';
+      }
+      return null;
+    },
     routes: <RouteBase>[
       GoRoute(
         path: '/',
@@ -22,6 +58,11 @@ GoRouter getAppRouter() {
         builder: (context, state) {
           return About();
         },
+      ),
+      GoRoute(path: '/login', builder: (context, state) => Login()),
+      GoRoute(
+        path: '/highscore',
+        builder: (context, state) => const Highscore(),
       ),
       GoRoute(
         path: '/addrecipe',
@@ -46,11 +87,24 @@ GoRouter getAppRouter() {
           ),
         ],
       ),
+      GoRoute(
+        path: '/popularmovie',
+        builder: (context, state) => const PopularMovie(),
+      ),
+      GoRoute(
+        path: '/detailpop/:id',
+        builder: (context, state) {
+          final movieID = int.parse(state.pathParameters['id']!);
+          return DetailPop(movieID: movieID);
+        },
+      ),
     ],
   );
 }
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await checkUser();
   runApp(const MyApp());
 }
 
@@ -85,6 +139,24 @@ class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
   final List<Widget> _screens = [Home(), Search(), History(), Game()];
   final List<String> _title = ['Home', 'Search', 'History', 'Game'];
+
+  @override
+  void initState() {
+    super.initState();
+    checkUser().then((value) {
+      if (!mounted) return;
+      setState(() {
+        active_user = value;
+      });
+    });
+  }
+
+  void doLogout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user_id');
+    active_user = '';
+    isLoggedIn.value = false;
+  }
 
   void _incrementCounter() {
     setState(() {
@@ -127,9 +199,9 @@ class _MyHomePageState extends State<MyHomePage> {
       elevation: 16.0,
       child: Column(
         children: <Widget>[
-          const UserAccountsDrawerHeader(
-            accountName: Text("xyz"),
-            accountEmail: Text("xyz@gmail.com"),
+          UserAccountsDrawerHeader(
+            accountName: Text(active_user),
+            accountEmail: Text(active_user),
             currentAccountPicture: CircleAvatar(
               backgroundImage: NetworkImage("https://i.pravatar.cc/150"),
             ),
@@ -171,6 +243,25 @@ class _MyHomePageState extends State<MyHomePage> {
             leading: const Icon(Icons.add_box_outlined),
             onTap: () {
               context.push("/addrecipe");
+            },
+          ),
+          ListTile(
+            title: const Text("High Score"),
+            leading: const Icon(Icons.emoji_events),
+            onTap: () {
+              context.push("/highscore");
+            },
+          ),
+          ListTile(
+            title: const Text("Logout"),
+            leading: const Icon(Icons.logout),
+            onTap: doLogout,
+          ),
+          ListTile(
+            title: const Text("Popular Movie"),
+            leading: const Icon(Icons.movie),
+            onTap: () {
+              context.push("/popularmovie");
             },
           ),
         ],

@@ -1,6 +1,17 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import '../main.dart';
+
+class _Ant {
+  _Ant({required this.x, required this.y, required this.dx, required this.dy});
+
+  double x;
+  double y;
+  double dx;
+  double dy;
+}
 
 class Game extends StatefulWidget {
   const Game({super.key});
@@ -12,12 +23,19 @@ class Game extends StatefulWidget {
 class _GameState extends State<Game> {
   int _hitung = 30;
   int _initValue = 30;
-  double _x = 100;
-  double _y = 400;
   late Timer _timer;
   late Timer _timer2;
-  bool _isDead = false;
+  int _point = 0;
+  bool _gameOver = false;
+  final Random _random = Random();
+  final List<_Ant> _ants = [
+    _Ant(x: 20, y: 40, dx: 2.0, dy: 1.0),
+    _Ant(x: 120, y: 150, dx: -3.0, dy: 1.5),
+    _Ant(x: 220, y: 250, dx: 1.0, dy: -4.0),
+  ];
 
+  static const double _playAreaSize = 320;
+  static const double _antSize = 48;
 
   @override
   void initState() {
@@ -26,37 +44,64 @@ class _GameState extends State<Game> {
   }
 
   void startTimer() {
+    _gameOver = false;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return;
 
-      setState(() {
-        if (_hitung == 0) {
-          timer.cancel();
-          _hitung = 30;
-          _showTimeUpDialog();
-        } else {
+      if (_hitung <= 1) {
+        setState(() {
+          _hitung = 0;
+        });
+        timer.cancel();
+        _timer2.cancel();
+        _showTimeUpDialog();
+      } else {
+        setState(() {
           _hitung--;
-        }
-      });
+        });
+      }
     });
-    _timer2 = Timer.periodic(Duration(milliseconds: 100), (timer) {
+    _timer2 = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      if (!mounted || _gameOver) return;
       setState(() {
-        if (_y < -50) {
-          _y = 400;
-        } else {
-          _y -= 3;
+        for (final ant in _ants) {
+          ant.x += ant.dx;
+          ant.y += ant.dy;
+          if (_isOutside(ant)) {
+            _respawnAnt(ant);
+          }
         }
       });
     });
   }
 
-  void _showTimeUpDialog() {
+  bool _isOutside(_Ant ant) {
+    return ant.x < -_antSize ||
+        ant.x > _playAreaSize ||
+        ant.y < -_antSize ||
+        ant.y > _playAreaSize;
+  }
+
+  void _respawnAnt(_Ant ant) {
+    ant.x = _random.nextDouble() * (_playAreaSize - _antSize);
+    ant.y = _random.nextDouble() * (_playAreaSize - _antSize);
+    final speed = 1.5 + _random.nextDouble() * 2.5;
+    ant.dx = (_random.nextBool() ? 1 : -1) * speed;
+    ant.dy = (_random.nextBool() ? 1 : -1) * speed;
+  }
+
+  void _showTimeUpDialog() async {
+    if (_gameOver) return;
+    _gameOver = true;
+    await saveHighScore(_point);
+    if (!mounted) return;
+
     showDialog(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Game'),
-          content: const Text('Time Up'),
+          title: const Text('Game Over'),
+          content: Text('Time Up\nYour total score: $_point'),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
@@ -82,13 +127,12 @@ class _GameState extends State<Game> {
     super.dispose();
   }
 
-  void hitAnt() {
-    if (_isDead) return;
+  void hitAnt(_Ant ant) {
+    if (_gameOver) return;
     setState(() {
-      _isDead = true;
+      _point++;
+      _respawnAnt(ant);
     });
-
-    _timer2.cancel();
   }
 
   @override
@@ -125,25 +169,37 @@ class _GameState extends State<Game> {
                   padding: const EdgeInsets.all(16.0),
                   child: Stack(
                     children: [
-                      Positioned(
-                        top: _y,
-                        left: _x,
-                        child: GestureDetector(
-                          onTap: hitAnt,
-                          child: Image.asset(
-                            _isDead ? 'assets/images/dead_ant.png' : 'assets/images/ant.gif',
-                            width: 48,
-                            height: 48,
+                      for (final ant in _ants)
+                        Positioned(
+                          left: ant.x,
+                          top: ant.y,
+                          child: GestureDetector(
+                            onTap: () => hitAnt(ant),
+                            child: Image.asset(
+                              'assets/images/ant.gif',
+                              width: _antSize,
+                              height: _antSize,
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),
                 ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      _timer.isActive ? _timer.cancel() : startTimer();
+                      if (_timer.isActive) {
+                        _timer.cancel();
+                      } else {
+                        if (_hitung == 0) {
+                          _hitung = _initValue;
+                          _point = 0;
+                          for (final ant in _ants) {
+                            _respawnAnt(ant);
+                          }
+                        }
+                        startTimer();
+                      }
                     });
                   },
                   child: Text(_timer.isActive ? 'Stop' : 'Start'),
