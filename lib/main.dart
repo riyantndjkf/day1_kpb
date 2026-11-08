@@ -13,7 +13,8 @@ import 'package:day1_kpb/screen/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:day1_kpb/screen/popularmovie.dart';
 import 'package:day1_kpb/screen/detailpop.dart';
-
+import 'package:day1_kpb/screen/newpopmovie.dart';
+import 'package:day1_kpb/screen/editpopmovie.dart';
 
 String active_user = '';
 final ValueNotifier<bool> isLoggedIn = ValueNotifier(false);
@@ -90,6 +91,18 @@ GoRouter getAppRouter() {
       GoRoute(
         path: '/popularmovie',
         builder: (context, state) => const PopularMovie(),
+      ),
+      GoRoute(
+        path: '/newpopmovie',
+        builder: (context, state) => const NewPopMovie(),
+      ),
+      GoRoute(
+        path: '/editpopmovie/:id',
+        name: 'popmovieedit',
+        builder: (context, state) {
+          final movieID = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return EditPopMovie(movieID: movieID);
+        },
       ),
       GoRoute(
         path: '/detailpop/:id',
@@ -262,6 +275,13 @@ class _MyHomePageState extends State<MyHomePage> {
             leading: const Icon(Icons.movie),
             onTap: () {
               context.push("/popularmovie");
+            },
+          ),
+          ListTile(
+            title: const Text("New Popular Movie"),
+            leading: const Icon(Icons.add_circle_outline),
+            onTap: () {
+              context.push("/newpopmovie");
             },
           ),
         ],

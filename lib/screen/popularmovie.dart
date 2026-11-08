@@ -21,7 +21,7 @@ class _PopularMovieState extends State<PopularMovie> {
   // Mengambil data JSON dari API
   Future<String> fetchData() async {
     final response = await http.post(
-      Uri.parse('https://ubaya.cloud/flutter/160423125/movielist.php'),
+      Uri.parse('https://ubaya.fun/flutter/160423125/movielist.php'),
       body: {'cari': _txtCari},
     );
 
@@ -90,8 +90,18 @@ class _PopularMovieState extends State<PopularMovie> {
             ),
             title: GestureDetector(
               child: Text(movie.title),
-              onTap: () {
-                context.push('/detailpop/${movie.id}');
+              onTap: () async {
+                final deleted = await context.push<bool>(
+                  '/detailpop/${movie.id}',
+                );
+                if (!mounted) return;
+                setState(() => _isLoading = true);
+                bacaData();
+                if (deleted == true) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Film berhasil dihapus')),
+                  );
+                }
               },
             ),
             subtitle: Column(
@@ -120,7 +130,26 @@ class _PopularMovieState extends State<PopularMovie> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Popular Movie')),
+      appBar: AppBar(
+        title: const Text('Popular Movie'),
+        actions: [
+          IconButton(
+            tooltip: 'Add Movie',
+            icon: const Icon(Icons.add),
+            onPressed: () async {
+              final added = await context.push<bool>('/newpopmovie');
+              if (!mounted) return;
+              if (added == true) {
+                setState(() => _isLoading = true);
+                bacaData();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Sukses Menambah Data')),
+                );
+              }
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
           // Textbox pencarian

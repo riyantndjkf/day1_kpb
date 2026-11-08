@@ -44,7 +44,7 @@ class _LoginState extends State<Login> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://ubaya.cloud/flutter/160423125/login.php'),
+        Uri.parse('https://ubaya.fun/flutter/160423125/login.php'),
         body: {'user_id': _userId.trim(), 'user_password': _password},
       );
 

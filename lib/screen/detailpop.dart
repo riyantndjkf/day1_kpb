@@ -2,7 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:day1_kpb/class/popmovie.dart'; 
+import 'package:day1_kpb/class/popmovie.dart';
+import 'package:go_router/go_router.dart';
 
 class DetailPop extends StatefulWidget {
   final int movieID;
@@ -18,11 +19,76 @@ class DetailPop extends StatefulWidget {
 class _DetailPopState extends State<DetailPop> {
   PopMovie? _pm;
   String? _errorMessage;
+  bool _isDeleting = false;
+
+  Future<void> openEdit() async {
+    await context.push('/editpopmovie/${widget.movieID}');
+    if (!mounted) return;
+    
+    setState(() {
+      _errorMessage = null;
+      _pm = null;
+    });
+    bacaData();
+  }
+
+  Future<void> deleteMovie() async {
+    if (_isDeleting) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete Movie'),
+        content: Text('Yakin ingin menghapus "${_pm?.title ?? 'film ini'}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isDeleting = true);
+    try {
+      final response = await http
+          .post(
+            Uri.parse('https://ubaya.fun/flutter/160423125/deletemovie.php'),
+            body: {'id': widget.movieID.toString()},
+          )
+          .timeout(const Duration(seconds: 20));
+      if (response.statusCode != 200) {
+        throw Exception('HTTP ${response.statusCode}');
+      }
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      if (!mounted) return;
+      if (json['result'] == 'success') {
+        context.pop(true); // beri sinyal agar Popular Movie reload
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(json['message']?.toString() ?? 'Gagal hapus film'),
+          ),
+        );
+      }
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal menghapus film: $error')));
+    } finally {
+      if (mounted) setState(() => _isDeleting = false);
+    }
+  }
 
   // Mengambil data film dari API
   Future<String> fetchData() async {
     final response = await http.post(
-      Uri.parse('https://ubaya.cloud/flutter/160423125/detailmovie.php'),
+      Uri.parse('https://ubaya.fun/flutter/160423125/detailmovie.php'),
       body: {'id': widget.movieID.toString()},
     );
 
@@ -153,9 +219,6 @@ class _DetailPopState extends State<DetailPop> {
             ),
           ),
 
-          // DAFTAR AKTOR DAN KARAKTER
-          
-          // DAFTAR AKTOR, KARAKTER, DAN GENDER
           Padding(
             padding: const EdgeInsets.all(10),
             child: casts.isEmpty
@@ -197,13 +260,11 @@ class _DetailPopState extends State<DetailPop> {
                                 : const Icon(Icons.person, size: 40),
                           ),
 
-                          // Nama aktor
                           title: Text(
                             actorName,
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
 
-                          // Karakter dan gender
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -225,7 +286,33 @@ class _DetailPopState extends State<DetailPop> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Detail of Popular Movie')),
-      body: ListView(children: <Widget>[tampilData()]),
+      body: ListView(
+        children: <Widget>[
+          tampilData(),
+          if (_pm != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: ElevatedButton.icon(
+                onPressed: openEdit,
+                icon: const Icon(Icons.edit),
+                label: const Text('Edit Movie'),
+              ),
+            ),
+          if (_pm != null)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: ElevatedButton.icon(
+                onPressed: _isDeleting ? null : deleteMovie,
+                icon: const Icon(Icons.delete_outline),
+                label: Text(_isDeleting ? 'Menghapus...' : 'Delete Movie'),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.red,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

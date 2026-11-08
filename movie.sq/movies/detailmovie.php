@@ -45,7 +45,7 @@ if ($result->num_rows > 0) {
     $r = mysqli_fetch_assoc($result);
 
     // Mengambil genre film
-    $sql2 = "SELECT genre_name
+    $sql2 = "SELECT genre.genre_id, genre.genre_name
              FROM genre
              INNER JOIN movie_genres
              ON genre.genre_id = movie_genres.genre_id
